@@ -2,11 +2,11 @@ package controllers
 
 import javax.inject._
 
-import akka.actor.{Actor, ActorRef, ActorSystem, PoisonPill, Props}
+import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import akka.pattern.ask
 import akka.stream.Materializer
 import akka.util.Timeout
-import controllers.Game.Unroll
+import controllers.Game.{Leftgame, Unroll}
 import play.api.Logger
 import play.api.libs.json.JsValue
 import play.api.libs.streams.ActorFlow
@@ -43,7 +43,8 @@ class AsyncController @Inject()(implicit actorSystem: ActorSystem, exec: Executi
     }
 
     override def postStop() = {
-      player.foreach{ _ ! PoisonPill }
+      Logger.debug("socket stopped")
+      game.foreach { game => player.foreach { player => game ! Leftgame(player) } }
     }
   }
 
