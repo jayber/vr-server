@@ -36,17 +36,14 @@ class AsyncController @Inject()(implicit actorSystem: ActorSystem, exec: Executi
 
     override def receive: Receive = {
       case msg: JsValue if (msg \ "event").as[String] == "unroll" =>
-        player.foreach {thePlayer =>
-          game.foreach { theGame =>
-            theGame ! Unroll(thePlayer)}}
+        game.zip(player).foreach { tuple => tuple._1 ! Unroll(tuple._2) }
       case msg: JsValue => game.foreach { _ ! msg }
     }
 
     override def postStop() = {
       Logger.debug("socket stopped")
-      game.foreach { game => player.foreach { player => game ! Leftgame(player) } }
+      game.zip(player).foreach { tuple => tuple._1 ! Leftgame(tuple._2) }
     }
   }
-
 }
 
