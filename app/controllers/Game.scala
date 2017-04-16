@@ -13,33 +13,25 @@ object Game {
   def props(spaceId: String) = Props(new Game(spaceId))
 
   case class Broadcast(jsonValue: JsValue)
-
   case class Unroll(player: ActorRef)
-
   case class Leftgame(player: ActorRef)
-
 }
 
 class Game(spaceId: String) extends Actor {
 
+  implicit private val timeout = Timeout(5 seconds)
+  implicit private val exec = context.dispatcher
+
   private val events = mutable.Queue[Broadcast]()
+
+  context.system.scheduler.schedule(Duration.create(0, "second"), Duration.create(30, "second"), self, Broadcast(Json.obj("event" -> "ping")))
 
   override def receive: Receive = {
     case (userId: String, out: ActorRef) =>
-
-      implicit val timeout = Timeout(5 seconds)
-      implicit val exec = context.dispatcher
-
       Logger.debug(s"making player: $userId")
       val player = context.actorOf(Player.props(userId, out), s"user-$userId")
-
       sender() ! player
-      context.children.filterNot {
-        _ == player
-      }.foreach {
-        _ ! Broadcast(Json.obj("event" -> "message", "data" -> "a new player has entered"))
-      }
-
+      self ! Broadcast(Json.obj("event" -> "message", "data" -> "a new player has entered"))
     case Unroll(player) => events.foreach {
       player ! _
     }
@@ -51,10 +43,15 @@ class Game(spaceId: String) extends Actor {
       }
       player ! PoisonPill
     case msg: JsValue =>
+      Logger.debug("broadcasting" + Json.stringify(msg))
       val broadcast = Broadcast(msg)
       events.enqueue(broadcast)
       context.children.foreach {
         _ ! broadcast
+      }
+    case ping@Broadcast(_) =>
+      context.children.foreach {
+        _ ! ping
       }
   }
 
