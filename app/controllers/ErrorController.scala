@@ -6,9 +6,9 @@ import play.api.mvc.{Action, Controller}
 
 class ErrorController extends Controller {
 
-  def post(message: String, stack: String) = Action {
+  def post(userId: String, message: String, stack: String) = Action {
     Logger.debug("reporting client error")
-    Logger("clientError").error(s"message: $message\n$stack")
+    Logger("clientError").error(s"userId: $userId, message: $message\n$stack")
     Ok
   }
 }

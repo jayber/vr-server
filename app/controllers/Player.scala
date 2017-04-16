@@ -9,12 +9,12 @@ import scala.concurrent.duration.Duration
 
 
 object Player {
-  def props(out: ActorRef) = Props(new Player(out))
+  def props(userId: String, out: ActorRef) = Props(new Player(userId, out))
 }
 
-class Player(out: ActorRef) extends Actor {
+class Player(userId: String, out: ActorRef) extends Actor {
 
-  context.system.scheduler.schedule(Duration.create(0,"second"),Duration.create(30,"second"),out,Json.obj("event" -> "ping"))(context.system.dispatcher)
+  context.system.scheduler.schedule(Duration.create(0, "second"), Duration.create(30, "second"), self, Broadcast(Json.obj("event" -> "ping")))(context.system.dispatcher)
 
   override def receive: Receive = {
     case Broadcast(msg) => out ! msg

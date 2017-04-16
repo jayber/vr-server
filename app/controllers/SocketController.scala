@@ -16,25 +16,29 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 @Singleton
-class AsyncController @Inject()(implicit actorSystem: ActorSystem, exec: ExecutionContext, materializer: Materializer) extends Controller {
+class SocketController @Inject()(implicit actorSystem: ActorSystem, exec: ExecutionContext, materializer: Materializer) extends Controller {
 
-  def ws: WebSocket = WebSocket.accept[JsValue, JsValue] { request =>
-    ActorFlow.actorRef(out => Props(new SocketActor(out)))
+  def ws(spaceId: String, userId: String): WebSocket = WebSocket.accept[JsValue, JsValue] { request =>
+    Logger.debug(s"space: $spaceId; user: $userId")
+    ActorFlow.actorRef(out => Props(new SocketActor(out, spaceId, userId)))
   }
 
-  class SocketActor(out: ActorRef) extends Actor {
+  class SocketActor(out: ActorRef, spaceId: String, userId: String) extends Actor {
 
     implicit val timeout = Timeout(5 seconds)
 
-    private val game = actorSystem.actorSelection(s"user/game").resolveOne
+    private val game = actorSystem.actorSelection(s"user/game-$spaceId").resolveOne
       .recover { case e =>
-        Logger.debug("creating new Game")
-        actorSystem.actorOf(Game.props(),"game")
+        Logger.debug(s"creating new Game: $spaceId")
+        actorSystem.actorOf(Game.props(spaceId), s"game-$spaceId")
       }
 
-    private val player = game.flatMap { _ ? out}.mapTo[ActorRef]
+    private val player = game.flatMap {
+      _ ? (userId, out)
+    }.mapTo[ActorRef]
 
     override def receive: Receive = {
+      case player: ActorRef =>
       case msg: JsValue if (msg \ "event").as[String] == "unroll" =>
         game.zip(player).foreach { tuple => tuple._1 ! Unroll(tuple._2) }
       case msg: JsValue => game.foreach { _ ! msg }
