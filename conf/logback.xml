@@ -11,7 +11,7 @@
   </appender>
 
   <appender name="CLIENTFILE" class="ch.qos.logback.core.FileAppender">
-    <file>${application.home:-.}/logs/clienterror.log</file>
+      <file>${application.home:-.}/logs/client.log</file>
     <encoder>
       <pattern>%date [%level] %message%n%xException</pattern>
     </encoder>
