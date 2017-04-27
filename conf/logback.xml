@@ -37,7 +37,7 @@
 
   <logger name="play" level="INFO" />
   <logger name="application" level="DEBUG" />
-  <logger name="clientError" level="DEBUG" additivity="false">
+  <logger name="client" level="DEBUG" additivity="false">
     <appender-ref ref="ASYNCCLIENTFILE"/>
   </logger>
 
