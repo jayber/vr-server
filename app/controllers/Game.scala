@@ -31,7 +31,9 @@ class Game(spaceId: String) extends Actor {
       Logger.debug(s"making player: $userId")
       val player = context.actorOf(Player.props(userId, out), s"user-$userId")
       sender() ! player
-    case Unroll(player) => events.foreach {
+    case Unroll(player) =>
+      player ! Broadcast(Json.obj("event" -> "reload"))
+      events.foreach {
       player ! _
     }
     case Leftgame(player) =>
