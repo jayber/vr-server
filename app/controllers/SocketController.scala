@@ -38,7 +38,6 @@ class SocketController @Inject()(implicit actorSystem: ActorSystem, exec: Execut
     }.mapTo[ActorRef]
 
     override def receive: Receive = {
-      case player: ActorRef =>
       case msg: JsValue if (msg \ "event").as[String] == "unroll" =>
         game.zip(player).foreach { tuple => tuple._1 ! Unroll(tuple._2) }
         player.foreach { p => Logger.debug(s"unrolling: $p") }

@@ -8,6 +8,7 @@ import play.api.libs.json.{JsValue, Json}
 
 import scala.collection.mutable
 import scala.concurrent.duration._
+import scala.util.Random
 
 object Game {
   def props(spaceId: String) = Props(new Game(spaceId))
@@ -18,6 +19,11 @@ object Game {
 }
 
 class Game(spaceId: String) extends Actor {
+  private var scoreIndex: Int = chooseRandom
+
+  private def chooseRandom: Int = {
+    Random.nextInt(3)
+  }
 
   implicit private val timeout = Timeout(5 seconds)
   implicit private val exec = context.dispatcher
@@ -26,13 +32,17 @@ class Game(spaceId: String) extends Actor {
 
   context.system.scheduler.schedule(Duration.create(0, "second"), Duration.create(30, "second"), self, Broadcast(Json.obj("event" -> "ping")))
 
+  private def broadcastReload: Broadcast = {
+    Broadcast(Json.obj("event" -> "reload", "data" -> Json.obj("score" -> scoreIndex)))
+  }
+
   override def receive: Receive = {
     case (userId: String, out: ActorRef) =>
       Logger.debug(s"making player: $userId")
       val player = context.actorOf(Player.props(userId, out), s"user-$userId")
       sender() ! player
     case Unroll(player) =>
-      player ! Broadcast(Json.obj("event" -> "reload"))
+      player ! broadcastReload
       events.foreach {
       player ! _
     }
@@ -43,6 +53,9 @@ class Game(spaceId: String) extends Actor {
         self ! PoisonPill
       }
       player ! PoisonPill
+    case msg: JsValue if (msg \ "event").as[String] == "reload" =>
+      scoreIndex = chooseRandom
+      self ! broadcastReload
     case msg: JsValue =>
       Logger.debug("broadcasting" + Json.stringify(msg))
       val broadcast = Broadcast(msg)
