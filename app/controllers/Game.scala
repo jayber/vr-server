@@ -21,10 +21,6 @@ object Game {
 class Game(spaceId: String) extends Actor {
   private var scoreIndex: Int = chooseRandom
 
-  private def chooseRandom: Int = {
-    Random.nextInt(3)
-  }
-
   implicit private val timeout = Timeout(5 seconds)
   implicit private val exec = context.dispatcher
 
@@ -32,8 +28,13 @@ class Game(spaceId: String) extends Actor {
 
   context.system.scheduler.schedule(Duration.create(0, "second"), Duration.create(30, "second"), self, Broadcast(Json.obj("event" -> "ping")))
 
+
+  private def chooseRandom: Int = {
+    Random.nextInt(3)
+  }
+
   private def broadcastReload: Broadcast = {
-    Broadcast(Json.obj("event" -> "reload", "data" -> Json.obj("score" -> scoreIndex)))
+    Broadcast(Json.obj("event" -> "reload", "data" -> Json.obj("index" -> scoreIndex)))
   }
 
   override def receive: Receive = {
@@ -53,9 +54,6 @@ class Game(spaceId: String) extends Actor {
         self ! PoisonPill
       }
       player ! PoisonPill
-    case msg: JsValue if (msg \ "event").as[String] == "reload" =>
-      scoreIndex = chooseRandom
-      self ! broadcastReload
     case msg: JsValue =>
       Logger.debug("broadcasting" + Json.stringify(msg))
       val broadcast = Broadcast(msg)
