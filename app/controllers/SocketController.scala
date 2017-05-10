@@ -6,7 +6,7 @@ import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import akka.pattern.ask
 import akka.stream.Materializer
 import akka.util.Timeout
-import controllers.Game.{Leftgame, Unroll}
+import controllers.Game.{Leftgame, Moderator, Unroll}
 import play.api.Logger
 import play.api.libs.json.JsValue
 import play.api.libs.streams.ActorFlow
@@ -38,6 +38,8 @@ class SocketController @Inject()(implicit actorSystem: ActorSystem, exec: Execut
     }.mapTo[ActorRef]
 
     override def receive: Receive = {
+      case msg: JsValue if (msg \ "event").as[String] == "moderatorPresent" =>
+        game.zip(player).foreach { gamePlayerTuple => gamePlayerTuple._1 ! Moderator(gamePlayerTuple._2) }
       case msg: JsValue if (msg \ "event").as[String] == "unroll" =>
         game.zip(player).foreach { tuple => tuple._1 ! Unroll(tuple._2) }
         player.foreach { p => Logger.debug(s"unrolling: $p") }
