@@ -1,1 +1,1 @@
-sudo bin/vr-server "-Dhttp.port=80" 2> /dev/null &
+sudo bin/vr-server "-Dhttp.port=80" -J-Xms2G -J-Xmx2G -J-server 2> /dev/null &

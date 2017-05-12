@@ -43,7 +43,7 @@ class Game(spaceId: String) extends Actor {
 
   override def receive: Receive = {
     case (userId: String, out: ActorRef) =>
-      Logger.debug(s"making player: $userId")
+      Logger.debug(s"game $spaceId making player: $userId")
       val player = context.actorOf(Player.props(userId, out), s"user-$userId")
       sender() ! player
     case Moderator(player) =>
@@ -68,7 +68,7 @@ class Game(spaceId: String) extends Actor {
       }
       player ! PoisonPill
     case msg: JsValue =>
-      Logger.debug("broadcasting" + Json.stringify(msg))
+      Logger.debug(s"game $spaceId broadcasting ${Json.stringify(msg)}")
       val broadcast = Broadcast(msg)
       events.enqueue(broadcast)
       context.children.foreach {
