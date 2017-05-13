@@ -17,7 +17,7 @@ libraryDependencies ++= Seq(
   jdbc,
   cache,
   ws,
-  "com.amazonaws" % "aws-java-sdk-ec2" % "1.11.125",
+  "com.amazonaws" % "aws-java-sdk-ses" % "1.11.125",
   "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % Test
 )
 
