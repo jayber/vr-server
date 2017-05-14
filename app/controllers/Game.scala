@@ -39,6 +39,7 @@ class Game(spaceId: String) extends Actor {
   private var discoModeRegister: Option[Broadcast] = None
   private var moderatorsRegister: Option[Broadcast] = None
   private var clearRegister: Option[Broadcast] = None
+  private var freeForAllRegister: Option[Broadcast] = None
   private var bpmList: List[Broadcast] = List()
   private val playTriggerMap: mutable.Map[(Int, Int), Broadcast] = mutable.Map()
 
@@ -108,6 +109,10 @@ class Game(spaceId: String) extends Actor {
         moderatorsRegister = keepLastOnly(moderatorsRegister, broadcast)
       case "moderatorAbsent" =>
         moderatorsRegister = keepLastOnly(moderatorsRegister, broadcast)
+      case "freeForAllOn" =>
+        freeForAllRegister = keepLastOnly(freeForAllRegister, broadcast)
+      case "freeForAllOff" =>
+        freeForAllRegister = keepLastOnly(freeForAllRegister, broadcast)
       case "addPlayTrigger" =>
         balanceTriggers(broadcast)
       case "removePlayTrigger" =>
@@ -115,6 +120,12 @@ class Game(spaceId: String) extends Actor {
       case "reload" =>
         events.clear()
         discoModeRegister.foreach {
+          events.enqueue(_)
+        }
+        moderatorsRegister.foreach {
+          events.enqueue(_)
+        }
+        freeForAllRegister.foreach {
           events.enqueue(_)
         }
         events.enqueue(broadcast)
