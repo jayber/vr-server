@@ -1,7 +1,7 @@
 <!-- https://www.playframework.com/documentation/latest/SettingsLogger -->
 <configuration>
 
-  <property name="logroot" value="${BEATLAB_HOME:-${HOME}}/logs"/>
+  <property name="logroot" value="${LOGDIR:-./logs}"/>
 
   <conversionRule conversionWord="coloredLevel" converterClass="play.api.libs.logback.ColoredLevel" />
 
@@ -12,13 +12,12 @@
       <!-- daily rollover -->
       <fileNamePattern>${logroot}/application.%d{yyyy-w}.log</fileNamePattern>
 
-      <!-- keep 30 days' worth of history capped at 3GB total size -->
       <maxHistory>5</maxHistory>
-      <totalSizeCap>100MB</totalSizeCap>
+      <totalSizeCap>1GB</totalSizeCap>
 
     </rollingPolicy>
     <encoder>
-      <pattern>%date [%level] from %logger in %thread - %message%n%xException</pattern>
+      <pattern>%date [%level] - %message%n%xException</pattern>
     </encoder>
   </appender>
 
@@ -30,11 +29,11 @@
       <fileNamePattern>${logroot}/client.%d{yyyy-w}.log</fileNamePattern>
 
       <maxHistory>5</maxHistory>
-      <totalSizeCap>100MB</totalSizeCap>
+      <totalSizeCap>1GB</totalSizeCap>
 
     </rollingPolicy>
     <encoder>
-      <pattern>%date [%level] %message%n%xException</pattern>
+      <pattern>%date [%level] - %message%n%xException</pattern>
     </encoder>
   </appender>
 
