@@ -31,8 +31,8 @@ class Game(spaceId: String) extends Actor {
   implicit private val timeout = Timeout(5 seconds)
   implicit private val exec = context.dispatcher
 
-  private val events = mutable.Queue[Broadcast]()
-  private val scoreIndex: Int = Random.nextInt(3)
+  private val initialReload: Broadcast = Broadcast(Json.obj("event" -> "reload", "data" -> Json.obj("index" -> Random.nextInt(3))))
+  private val events = mutable.Queue[Broadcast](initialReload)
   private val moderators = ArrayBuffer[ActorRef]()
 
   private var startStopRegister: Option[Broadcast] = None
@@ -40,13 +40,10 @@ class Game(spaceId: String) extends Actor {
   private var moderatorsRegister: Option[Broadcast] = None
   private var clearRegister: Option[Broadcast] = None
   private var bpmList: List[Broadcast] = List()
-  private var playTriggerMap: mutable.Map[(Int, Int), Broadcast] = mutable.Map()
+  private val playTriggerMap: mutable.Map[(Int, Int), Broadcast] = mutable.Map()
 
   context.system.scheduler.schedule(Duration.create(0, "second"), Duration.create(30, "second"), self, Ping(Json.obj("event" -> "ping")))
 
-  private def broadcastReload: Broadcast = {
-    Broadcast(Json.obj("event" -> "reload", "data" -> Json.obj("index" -> scoreIndex)))
-  }
 
   override def receive: Receive = {
     case (userId: String, out: ActorRef) =>
@@ -59,7 +56,6 @@ class Game(spaceId: String) extends Actor {
         self ! Json.obj("event" -> "moderatorPresent")
       }
     case Unroll(player) =>
-      player ! broadcastReload
       events.foreach {
         player ! _
       }
@@ -77,7 +73,9 @@ class Game(spaceId: String) extends Actor {
       }
       player ! PoisonPill
     case msg: JsValue =>
-      queueAndBroadcast(msg)
+      val broadcast = Broadcast(msg)
+      consolidateQueue(broadcast)
+      self ! broadcast
     case message@Broadcast(content) =>
       Logger.debug(s"game $spaceId broadcasting ${Json.stringify(content)} - size: ${events.size}")
       context.children.foreach {
@@ -88,12 +86,6 @@ class Game(spaceId: String) extends Actor {
       context.children.foreach {
         _ ! broadcast
       }
-  }
-
-  private def queueAndBroadcast(msg: JsValue): Unit = {
-    val broadcast = Broadcast(msg)
-    consolidateQueue(broadcast)
-    self ! broadcast
   }
 
   private def consolidateQueue(broadcast: Broadcast): Unit = {
@@ -116,19 +108,22 @@ class Game(spaceId: String) extends Actor {
         moderatorsRegister = keepLastOnly(moderatorsRegister, broadcast)
       case "moderatorAbsent" =>
         moderatorsRegister = keepLastOnly(moderatorsRegister, broadcast)
+      case "addPlayTrigger" =>
+        balanceTriggers(broadcast)
+      case "removePlayTrigger" =>
+        balanceTriggers(broadcast)
       case "reload" =>
         events.clear()
+        discoModeRegister.foreach {
+          events.enqueue(_)
+        }
         events.enqueue(broadcast)
-      case "addPlayTrigger" =>
-        balanceOption(broadcast)
-      case "removePlayTrigger" =>
-        balanceOption(broadcast)
       case _ =>
         events.enqueue(broadcast)
     }
   }
 
-  private def balanceOption(broadcast: Broadcast): Unit = {
+  private def balanceTriggers(broadcast: Broadcast): Unit = {
     val key = ((broadcast.jsonValue \ "data" \ "instrumentNumber").as[Int], (broadcast.jsonValue \ "data" \ "count").as[Int])
     val option = playTriggerMap.get(key)
     if (option.isDefined) {
