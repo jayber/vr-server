@@ -1,14 +1,16 @@
 <!-- https://www.playframework.com/documentation/latest/SettingsLogger -->
 <configuration>
 
+  <property name="logroot" value="${BEATLAB_HOME:-${HOME}}/logs"/>
+
   <conversionRule conversionWord="coloredLevel" converterClass="play.api.libs.logback.ColoredLevel" />
 
   <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-    <file>${user.dir:-.}/logs/application.log</file>
+    <file>${logroot}/application.log</file>
     <append>true</append>
     <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
       <!-- daily rollover -->
-      <fileNamePattern>${user.dir:-.}/logs/application.%d{w}.log</fileNamePattern>
+      <fileNamePattern>${logroot}/application.%d{yyyy-w}.log</fileNamePattern>
 
       <!-- keep 30 days' worth of history capped at 3GB total size -->
       <maxHistory>5</maxHistory>
@@ -21,11 +23,11 @@
   </appender>
 
   <appender name="CLIENTFILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-    <file>${user.dir:-.}/logs/client.log</file>
+    <file>${logroot}/client.log</file>
     <append>true</append>
     <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
       <!-- daily rollover -->
-      <fileNamePattern>${user.dir:-.}/logs/client.%d{w}.log</fileNamePattern>
+      <fileNamePattern>${logroot}/client.%d{yyyy-w}.log</fileNamePattern>
 
       <maxHistory>5</maxHistory>
       <totalSizeCap>100MB</totalSizeCap>

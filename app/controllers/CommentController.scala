@@ -21,7 +21,8 @@ class CommentController extends Controller {
   private def sendEmail(userId: String, body: Map[String, Seq[String]]) = {
 
     val sender = System.getProperty("SENDER")
-    val recipients = System.getProperty("RECIPIENTS").split("""\s*\;\,""")
+    val recipients = System.getProperty("RECIPIENTS").split("""[\s*\;\,]""")
+    Logger.debug(s"recipients: ${recipients.mkString("| ")}")
 
     val destination: Destination = new Destination().withToAddresses(recipients: _*)
 
