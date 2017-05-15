@@ -20,10 +20,10 @@ class SocketController @Inject()(implicit actorSystem: ActorSystem, exec: Execut
 
   def ws(spaceId: String, userId: String): WebSocket = WebSocket.accept[JsValue, JsValue] { request =>
     Logger.debug(s"space: $spaceId; user: $userId")
-    ActorFlow.actorRef(out => Props(new SocketActor(out, spaceId, userId)))
+    ActorFlow.actorRef(out => Props(new PlayerIn(out, spaceId, userId)))
   }
 
-  class SocketActor(out: ActorRef, spaceId: String, userId: String) extends Actor {
+  class PlayerIn(out: ActorRef, spaceId: String, userId: String) extends Actor {
 
     implicit val timeout = Timeout(5 seconds)
 

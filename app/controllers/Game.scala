@@ -31,7 +31,7 @@ class Game(spaceId: String) extends Actor {
   implicit private val timeout = Timeout(5 seconds)
   implicit private val exec = context.dispatcher
 
-  private val initialReload: Broadcast = Broadcast(Json.obj("event" -> "reload", "data" -> Json.obj("index" -> Random.nextInt(3))))
+  private val initialReload: Broadcast = Broadcast(Json.obj("event" -> "reload", "data" -> Json.obj("index" -> Random.nextInt(5))))
   private val events = mutable.Queue[Broadcast](initialReload)
   private val moderators = ArrayBuffer[ActorRef]()
 
@@ -146,14 +146,6 @@ class Game(spaceId: String) extends Actor {
     }
   }
 
-  private def keepLastOnly(register: Option[Broadcast], broadcast: Broadcast): Option[Broadcast] = {
-    if (register.isDefined) {
-      events.dequeueFirst { elem => elem == register.get }
-    }
-    events.enqueue(broadcast)
-    Some(broadcast)
-  }
-
   private def balance(list: List[Broadcast], broadcast: Broadcast): List[Broadcast] = {
     if (list.isEmpty || (list.head.jsonValue \ "event") == broadcast.jsonValue \ "event") {
       events.enqueue(broadcast)
@@ -162,5 +154,13 @@ class Game(spaceId: String) extends Actor {
       events.dequeueFirst { elem => elem == list.head }
       list.tail
     }
+  }
+
+  private def keepLastOnly(register: Option[Broadcast], broadcast: Broadcast): Option[Broadcast] = {
+    if (register.isDefined) {
+      events.dequeueFirst { elem => elem == register.get }
+    }
+    events.enqueue(broadcast)
+    Some(broadcast)
   }
 }
