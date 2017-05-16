@@ -69,7 +69,7 @@ class Game(spaceId: String) extends Actor {
         }
       }
       if (context.children.size == 1) {
-        Logger.debug("game taking the pill")
+        Logger.debug(s"$spaceId taking the pill")
         self ! PoisonPill
       }
       player ! PoisonPill
@@ -78,7 +78,7 @@ class Game(spaceId: String) extends Actor {
       consolidateQueue(broadcast)
       self ! broadcast
     case message@Broadcast(content) =>
-      Logger.debug(s"game $spaceId broadcasting ${Json.stringify(content)} - size: ${events.size}")
+      Logger.debug(s"$spaceId broadcasting ${Json.stringify(content)} - size: ${events.size}; players: ${context.children.size}")
       context.children.foreach {
         _ ! message
       }
