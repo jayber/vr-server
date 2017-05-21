@@ -75,7 +75,7 @@ class Game(spaceId: String) extends Actor {
       player ! PoisonPill
     case msg: JsValue =>
       val broadcast = Broadcast(msg)
-      consolidateQueue(broadcast)
+      consolidateWithQueue(broadcast)
       self ! broadcast
     case message@Broadcast(content) =>
       Logger.debug(s"$spaceId broadcasting ${Json.stringify(content)} - size: ${events.size}; players: ${context.children.size}")
@@ -89,7 +89,7 @@ class Game(spaceId: String) extends Actor {
       }
   }
 
-  private def consolidateQueue(broadcast: Broadcast): Unit = {
+  private def consolidateWithQueue(broadcast: Broadcast): Unit = {
     (broadcast.jsonValue \ "event").as[String] match {
       case "start" =>
         startStopRegister = keepLastOnly(startStopRegister, broadcast)
@@ -156,9 +156,9 @@ class Game(spaceId: String) extends Actor {
     }
   }
 
-  private def keepLastOnly(register: Option[Broadcast], broadcast: Broadcast): Option[Broadcast] = {
-    if (register.isDefined) {
-      events.dequeueFirst { elem => elem == register.get }
+  private def keepLastOnly(previousElement: Option[Broadcast], broadcast: Broadcast): Option[Broadcast] = {
+    if (previousElement.isDefined) {
+      events.dequeueFirst { elem => elem == previousElement.get }
     }
     events.enqueue(broadcast)
     Some(broadcast)
