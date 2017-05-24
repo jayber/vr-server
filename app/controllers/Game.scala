@@ -114,9 +114,9 @@ class Game(spaceId: String) extends Actor {
       case "freeForAllOff" =>
         freeForAllRegister = keepLastOnly(freeForAllRegister, broadcast)
       case "addPlayTrigger" =>
-        balanceTriggers(broadcast)
+        keepLastOnlyTriggers(broadcast)
       case "removePlayTrigger" =>
-        balanceTriggers(broadcast)
+        keepLastOnlyTriggers(broadcast)
       case "reload" =>
         events.clear()
         discoModeRegister.foreach {
@@ -134,7 +134,7 @@ class Game(spaceId: String) extends Actor {
     }
   }
 
-  private def balanceTriggers(broadcast: Broadcast): Unit = {
+  private def keepLastOnlyTriggers(broadcast: Broadcast): Unit = {
     val key = ((broadcast.jsonValue \ "data" \ "instrumentNumber").as[Int], (broadcast.jsonValue \ "data" \ "count").as[Int])
     val option = playTriggerMap.get(key)
     if (option.isDefined) {
