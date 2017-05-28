@@ -1,1 +1,1 @@
-activator -DRECIPIENTS="james.a.bromley@gmail.com,james.a.bromley@googlemail.com" -DSENDER=james.a.bromley@gmail.com -Daws.accessKeyId=AKIAJBX52M6O3JZ63PLA -Daws.secretKey=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 run -jvm-debug 9999
+sbt "run -DRECIPIENTS=james.a.bromley@gmail.com,james.a.bromley@googlemail.com -DSENDER=james.a.bromley@gmail.com -Daws.accessKeyId=AKIAJBX52M6O3JZ63PLA -Daws.secretKey=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" -jvm-debug 9999

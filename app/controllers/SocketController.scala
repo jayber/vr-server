@@ -18,12 +18,12 @@ import scala.concurrent.duration._
 @Singleton
 class SocketController @Inject()(implicit actorSystem: ActorSystem, exec: ExecutionContext, materializer: Materializer) extends Controller {
 
-  def ws(spaceId: String, userId: String): WebSocket = WebSocket.accept[JsValue, JsValue] { request =>
-    Logger.debug(s"space: $spaceId; user: $userId")
-    ActorFlow.actorRef(out => Props(new PlayerIn(out, spaceId, userId)))
+  def ws(spaceId: String, userId: String, displayName: String): WebSocket = WebSocket.accept[JsValue, JsValue] { request =>
+    Logger.debug(s"space: $spaceId; user: $userId; username: $displayName")
+    ActorFlow.actorRef(out => Props(new PlayerIn(out, spaceId, userId, displayName)))
   }
 
-  class PlayerIn(out: ActorRef, spaceId: String, userId: String) extends Actor {
+  class PlayerIn(out: ActorRef, spaceId: String, userId: String, displayName: String) extends Actor {
 
     implicit val timeout = Timeout(5 seconds)
 
@@ -34,7 +34,7 @@ class SocketController @Inject()(implicit actorSystem: ActorSystem, exec: Execut
       }
 
     private val player = game.flatMap {
-      _ ? (userId, out)
+      _ ? (userId, displayName, out)
     }.mapTo[ActorRef]
 
     override def receive: Receive = {
@@ -42,7 +42,7 @@ class SocketController @Inject()(implicit actorSystem: ActorSystem, exec: Execut
         game.zip(player).foreach { gamePlayerTuple => gamePlayerTuple._1 ! Moderator(gamePlayerTuple._2) }
       case msg: JsValue if (msg \ "event").as[String] == "unroll" =>
         game.zip(player).foreach { tuple => tuple._1 ! Unroll(tuple._2) }
-        player.foreach { p => Logger.debug(s"unrolling: $p") }
+        Logger.debug(s"unrolling: $userId:$displayName")
       case msg: JsValue => game.foreach { _ ! msg }
     }
 

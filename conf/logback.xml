@@ -10,7 +10,7 @@
     <append>true</append>
     <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
       <!-- daily rollover -->
-      <fileNamePattern>${logroot}/application.%d{yyyy-w}.log</fileNamePattern>
+      <fileNamePattern>${logroot}/application.%d{yyyy-MM-dd, aux}-%d{yyyy-ww}.log</fileNamePattern>
 
       <maxHistory>5</maxHistory>
       <totalSizeCap>1GB</totalSizeCap>
@@ -26,7 +26,7 @@
     <append>true</append>
     <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
       <!-- daily rollover -->
-      <fileNamePattern>${logroot}/client.%d{yyyy-w}.log</fileNamePattern>
+      <fileNamePattern>${logroot}/client.%d{yyyy-MM-dd, aux}-%d{yyyy-ww}.log</fileNamePattern>
 
       <maxHistory>5</maxHistory>
       <totalSizeCap>1GB</totalSizeCap>

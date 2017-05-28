@@ -5,7 +5,7 @@
 GET     /log                           controllers.ClientLoggingController.log(userId, message)
 GET     /error                           controllers.ClientLoggingController.post(userId, message, stack)
 POST     /savecomment/:spaceId/:userId                           controllers.CommentController.post(spaceId, userId)
-GET     /ws/:spaceId/:userId                           controllers.SocketController.ws(spaceId, userId)
+GET     /ws/:spaceId/:userId                           controllers.SocketController.ws(spaceId, userId, displayName)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /*file               controllers.Assets.versioned(path="/public", file: Asset)

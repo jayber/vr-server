@@ -13,7 +13,7 @@ class CommentController extends Controller {
 
   def post(spaceId: String, userId: String) = Action { request =>
     val body = request.body.asFormUrlEncoded.get
-    Logger("client").info(s"userId: $userId, email: ${body("email").head}\n${body("message").head}")
+    Logger("client").info(s"feedback - userId: $userId, email: ${body("email").head}\n${body("message").head}")
     sendEmail(userId, body)
     Ok
   }
