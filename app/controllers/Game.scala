@@ -48,7 +48,7 @@ class Game(spaceId: String) extends Actor {
 
   override def receive: Receive = {
     case (userId: String, displayName: String, out: ActorRef) =>
-      Logger.debug(s"game $spaceId making player: $userId:$displayName")
+      Logger.debug(s"[$spaceId] making player: $userId:$displayName")
       val player = context.actorOf(Player.props(userId, displayName, out), s"user-$userId")
       sender() ! player
     case Moderator(player) =>
@@ -69,7 +69,7 @@ class Game(spaceId: String) extends Actor {
         }
       }
       if (context.children.size == 1) {
-        Logger.debug(s"$spaceId taking the pill")
+        Logger.debug(s"[$spaceId] taking the pill")
         self ! PoisonPill
       }
       player ! PoisonPill
@@ -78,7 +78,7 @@ class Game(spaceId: String) extends Actor {
       consolidateWithQueue(broadcast)
       self ! broadcast
     case message@Broadcast(content) =>
-      Logger.debug(s"$spaceId broadcasting ${Json.stringify(content)} - events.size: ${events.size}; players.size: ${context.children.size}")
+      Logger.debug(s"[$spaceId] broadcasting ${Json.stringify(content)} - events.size: ${events.size}; players.size: ${context.children.size}")
       context.children.foreach {
         _ ! message
       }
