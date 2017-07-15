@@ -23,6 +23,15 @@
 
   <appender name="CLIENTFILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
     <file>${logroot}/client.log</file>
+    <filter class="ch.qos.logback.core.filter.EvaluatorFilter">
+      <evaluator> <!-- defaults to type ch.qos.logback.classic.boolex.JaninoEventEvaluator -->
+        <expression>return message.contains("Cannot read property 'removeBehavior' of undefined") ||
+          message.contains("TypeError: Cannot read property 'uuid' of null");
+        </expression>
+      </evaluator>
+      <OnMismatch>NEUTRAL</OnMismatch>
+      <OnMatch>DENY</OnMatch>
+    </filter>
     <append>true</append>
     <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
       <!-- daily rollover -->

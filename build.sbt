@@ -18,6 +18,7 @@ libraryDependencies ++= Seq(
   cache,
   ws,
   "com.amazonaws" % "aws-java-sdk-ses" % "1.11.125",
+  "org.codehaus.janino" % "janino" % "3.0.6",
   "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % Test
 )
 

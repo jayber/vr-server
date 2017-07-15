@@ -135,10 +135,18 @@ class Game(spaceId: String) extends Actor {
   }
 
   private def keepLastOnlyTriggers(broadcast: Broadcast): Unit = {
-    val key = ((broadcast.jsonValue \ "data" \ "instrumentNumber").as[Int], (broadcast.jsonValue \ "data" \ "count").as[Int])
+    val instrumentNumber = (broadcast.jsonValue \ "data" \ "instrumentNumber").as[Int]
+    val count = (broadcast.jsonValue \ "data" \ "count").as[Int]
+    val key = (instrumentNumber, count)
     val option = playTriggerMap.get(key)
     if (option.isDefined) {
       events.dequeueFirst { elem => elem == option.head }
+      events.dequeueAll { elem =>
+        ((elem.jsonValue \ "event").as[String] == "pitchUp" || (elem.jsonValue \ "event").as[String] == "pitchDown") &&
+          (elem.jsonValue \ "data" \ "instrumentIndex").as[Int] == instrumentNumber && (elem.jsonValue \ "data" \ "count").as[Int] == count
+
+      }
+
       playTriggerMap.remove(key)
     } else {
       events.enqueue(broadcast)
@@ -151,14 +159,18 @@ class Game(spaceId: String) extends Actor {
       events.enqueue(broadcast)
       list :+ broadcast
     } else {
-      events.dequeueFirst { elem => elem == list.head }
+      events.dequeueFirst {
+        elem => elem == list.head
+      }
       list.tail
     }
   }
 
   private def keepLastOnly(previousElement: Option[Broadcast], broadcast: Broadcast): Option[Broadcast] = {
     if (previousElement.isDefined) {
-      events.dequeueFirst { elem => elem == previousElement.get }
+      events.dequeueFirst {
+        elem => elem == previousElement.get
+      }
     }
     events.enqueue(broadcast)
     Some(broadcast)
