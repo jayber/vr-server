@@ -31,6 +31,8 @@ class Game(spaceId: String) extends Actor {
   implicit private val timeout = Timeout(5 seconds)
   implicit private val exec = context.dispatcher
 
+  private val deleteEmptyGame = System.getProperty("DELEMPTY", "true") == "true"
+
   private val initialReload: Broadcast = Broadcast(Json.obj("event" -> "reload", "data" -> Json.obj("index" -> Random.nextInt(5))))
   private val events = mutable.Queue[Broadcast](initialReload)
   private val moderators = ArrayBuffer[ActorRef]()
@@ -40,6 +42,7 @@ class Game(spaceId: String) extends Actor {
   private var moderatorsRegister: Option[Broadcast] = None
   private var clearRegister: Option[Broadcast] = None
   private var freeForAllRegister: Option[Broadcast] = None
+  private var modOnlyRegister: Option[Broadcast] = None
   private var bpmList: List[Broadcast] = List()
   private val playTriggerMap: mutable.Map[(Int, Int), Broadcast] = mutable.Map()
 
@@ -68,7 +71,7 @@ class Game(spaceId: String) extends Actor {
           self ! Json.obj("event" -> "moderatorAbsent")
         }
       }
-      if (context.children.size == 1) {
+      if (deleteEmptyGame && context.children.size == 1) {
         Logger.debug(s"[$spaceId] taking the pill")
         self ! PoisonPill
       }
@@ -113,6 +116,10 @@ class Game(spaceId: String) extends Actor {
         freeForAllRegister = keepLastOnly(freeForAllRegister, broadcast)
       case "freeForAllOff" =>
         freeForAllRegister = keepLastOnly(freeForAllRegister, broadcast)
+      case "modOnlyOn" =>
+        modOnlyRegister = keepLastOnly(modOnlyRegister, broadcast)
+      case "modOnlyOff" =>
+        modOnlyRegister = keepLastOnly(modOnlyRegister, broadcast)
       case "addPlayTrigger" =>
         keepLastOnlyTriggers(broadcast)
       case "removePlayTrigger" =>
@@ -126,6 +133,12 @@ class Game(spaceId: String) extends Actor {
           events.enqueue(_)
         }
         freeForAllRegister.foreach {
+          events.enqueue(_)
+        }
+        modOnlyRegister.foreach {
+          events.enqueue(_)
+        }
+        startStopRegister.foreach {
           events.enqueue(_)
         }
         events.enqueue(broadcast)
